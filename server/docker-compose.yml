@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  hotspot:
+    image: astra-hotspot:v0.1
+    build: ./hotspot
+    network_mode: host
+    privileged: true
