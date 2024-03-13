@@ -10,6 +10,7 @@ dependencies:
   camera: ^0.10.5+9
   flutter:
     sdk: flutter
+  mqtt_client: ^10.2.0
   video_player: ^2.8.3
 
 dev_dependencies:
