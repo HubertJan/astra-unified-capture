@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CameraRecorder {
   final CameraController _cameraController;
@@ -43,7 +44,10 @@ class CameraRecorder {
       return;
     }
     _isRecording = false;
-    _cameraController.stopVideoRecording();
+    final videoFile = await _cameraController.stopVideoRecording();
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = DateTime.now().millisecondsSinceEpoch;
+    videoFile.saveTo('${directory.path}/$fileName');
   }
 }
 

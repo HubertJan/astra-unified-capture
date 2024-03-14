@@ -1,34 +1,55 @@
 #!/usr/bin/python
 import time
 import paho.mqtt.client as mqtt
+import RPi.GPIO as GPIO
+import signal                   
+import sys
 
-# The callback for when the client receives a CONNACK response from the server.
+EVENT_GPIO = 17
+
 def on_connect(client, userdata, flags, reason_code, properties=None):
     print(f"Connected with result code {reason_code}")
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-    client.subscribe("$SYS/#")
 
-# The callback for when a PUBLISH message is received from the server.
+
 def on_message(client, userdata, msg):
     print(msg.topic+" "+str(msg.payload))
 
-mqttc = mqtt.Client(client_id="py-sensors")
-mqttc.on_connect = on_connect
-mqttc.on_message = on_message
 
-mqttc.connect("192.168.2.1", 1883, 60)
+def setup_gpio():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(EVENT_GPIO, GPIO.IN)
+    
+def setup_mqtt_client():
+    client = mqtt.Client(client_id="py-sensors")
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.connect("192.168.2.1", 1883, 60)
+    return client
 
-mqttc.loop_start() #start the loop
-print("Subscribing to topic","house/bulbs/bulb1")
-mqttc.subscribe("house/bulbs/bulb1")
-is_recording = False
-while True:
-    print("Publishing message to topic","house/bulbs/bulb1")
-    if is_recording:
-        mqttc.publish("recording","ON")
-    if not is_recording:
-        mqttc.publish("recording","OFF")
-    is_recording = not is_recording
-    time.sleep(4)
-mqttc.loop_stop() #stop the loop
+
+def signal_handler(sig, frame, on_cleanup):
+    GPIO.cleanup()
+    sys.exit(0)
+    on_cleanup()
+
+def main():
+    print("Start MQT Client")
+    client = setup_mqtt_client()
+    client.loop_start()
+    client.publish("recording","ON", retain=True)
+    print("Published 0N")
+    setup_gpio()
+    signal.signal(
+        signal.SIGINT, 
+        lambda sig, frame: signal_handler(sig, frame, client.loop_stop)
+    )
+    while True:
+        if GPIO.input(EVENT_GPIO) == 1:
+            client.publish("recording","ON", retain=True)
+        else: 
+            client.publish("recording","OFF", retain=True)
+        time.sleep(1)
+    
+    
+if __name__ == '__main__':
+    main()
