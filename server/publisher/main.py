@@ -43,11 +43,15 @@ def main():
         signal.SIGINT, 
         lambda sig, frame: signal_handler(sig, frame, client.loop_stop)
     )
+    previous_state = None
     while True:
-        if GPIO.input(EVENT_GPIO) == 1:
+        # Refactor, other publisher might overwrite recording => Would not work anymore
+        if GPIO.input(EVENT_GPIO) == 1 and previous_state != 1:
             client.publish("recording","ON", retain=True)
-        else: 
+            previous_state = 1
+        if GPIO.input(EVENT_GPIO) == 0 and previous_state != 0: 
             client.publish("recording","OFF", retain=True)
+            previous_state = 0
         time.sleep(1)
     
     
