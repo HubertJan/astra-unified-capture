@@ -1,5 +1,6 @@
-import 'package:app/recording_screen.dart';
+import 'package:app/screens/recording_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// CameraApp is the Main Application.
 class CameraApp extends StatelessWidget {
@@ -14,5 +15,7 @@ class CameraApp extends StatelessWidget {
 }
 
 Future<void> main() async {
-  runApp(const CameraApp());
+  runApp(const ProviderScope(
+    child: CameraApp(),
+  ));
 }
