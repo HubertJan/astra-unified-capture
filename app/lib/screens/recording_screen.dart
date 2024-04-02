@@ -44,11 +44,12 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
       cameraRecorder = recorder;
       ref.read(commandControllerProvider.notifier).turnOnAutoConnect();
       ref.listen(commandControllerProvider, (before, now) {
-        final wasRecording = switch (before?.value) {
+        final wasRecording = switch (before) {
           ConnectedControllerState value => value.isRecording,
           _ => false
         };
-        final isRecording = switch (now.value) {
+
+        final isRecording = switch (now) {
           ConnectedControllerState value => value.isRecording,
           _ => false
         };
@@ -85,15 +86,13 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                 data: (ip) => Text(ip.value ?? "No IP"),
                 orElse: () => const SizedBox(),
               ),
-              controllerState.maybeMap(
-                data: (state) => switch (state.value) {
-                  DisconnectedControllerState() => const Text("Error"),
-                  ConnectingControllerState() => const Text("Loading"),
-                  ConnectedControllerState value =>
-                    Text("Connected, Recording: ${value.isRecording}"),
-                },
-                orElse: () => const SizedBox(),
-              ),
+              switch (controllerState) {
+                DisconnectedControllerState() => const Text("Error"),
+                ConnectingControllerState state => Text(
+                    "Loading\n Auto Retry:  ${state.isAutoConnecting ? "True" : "False"}"),
+                ConnectedControllerState value =>
+                  Text("Connected, Recording: ${value.isRecording}"),
+              },
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(1.0),

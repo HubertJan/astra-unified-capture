@@ -1,6 +1,5 @@
 import 'package:app/provider/network_ip.dart';
 import 'package:app/services/command_receiver.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'command_controller.g.dart';
@@ -9,7 +8,11 @@ sealed class ControllerState {}
 
 class DisconnectedControllerState extends ControllerState {}
 
-class ConnectingControllerState extends ControllerState {}
+class ConnectingControllerState extends ControllerState {
+  final bool isAutoConnecting;
+
+  ConnectingControllerState({required this.isAutoConnecting});
+}
 
 class ConnectedControllerState extends ControllerState {
   final bool isRecording;
@@ -23,49 +26,53 @@ class CommandController extends _$CommandController {
   final controllerState = DisconnectedControllerState;
 
   @override
-  Future<ControllerState> build() async {
+  ControllerState build() {
     _receiver.onConnected = () {
-      state = AsyncData(ConnectedControllerState(isRecording: false));
+      state = ConnectedControllerState(isRecording: false);
     };
     _receiver.onDisconnected = () {
       if (_receiver.isAutoConnecting) {
         return;
       }
-      state = AsyncData(DisconnectedControllerState());
+      state = DisconnectedControllerState();
     };
     _receiver.onRecordingUpdate = (isRecording) {
-      state = AsyncData(ConnectedControllerState(isRecording: isRecording));
+      state = ConnectedControllerState(isRecording: isRecording);
     };
     ref.listen(networkIPProvider, (previous, next) {
       if (next.value == null) {
-        state = AsyncData(DisconnectedControllerState());
+        state = DisconnectedControllerState();
       }
     });
     return DisconnectedControllerState();
   }
 
   void connect() {
-    if (state case AsyncData<DisconnectedControllerState> _) {
-      state = AsyncData(ConnectingControllerState());
+    if (state case DisconnectedControllerState _) {
+      state = ConnectingControllerState(
+          isAutoConnecting: _receiver.isAutoConnecting);
       _receiver.connect();
     }
   }
 
   void turnOnAutoConnect() {
-    state = AsyncData(ConnectingControllerState());
     _receiver.turnOnAutoConnect();
+    connect();
   }
 
   void turnOffAutoConnect() {
-    state = AsyncData(ConnectingControllerState());
+    if (state
+        case DisconnectedControllerState _ || ConnectingControllerState _) {
+      state = ConnectingControllerState(isAutoConnecting: true);
+    }
     _receiver.turnOffAutoConnect();
   }
 
   void disconnect() {
-    if (state case AsyncData<ConnectedControllerState> _) {
+    if (state case ConnectedControllerState _) {
       _receiver.disconnect();
       turnOffAutoConnect();
-      state = AsyncData(DisconnectedControllerState());
+      state = DisconnectedControllerState();
     }
   }
 }
