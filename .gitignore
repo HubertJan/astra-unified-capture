@@ -1,1 +1,5 @@
 **/astra-*.tar
+
+/app/macos/*
+
+/app/lib/**/*.g.dart
