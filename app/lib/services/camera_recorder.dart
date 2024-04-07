@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:app/services/file_uploader.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +51,10 @@ class CameraRecorder {
     final videoFile = await _cameraController.stopVideoRecording();
     final directory = await getApplicationDocumentsDirectory();
     final fileName = DateTime.now().millisecondsSinceEpoch;
-    videoFile.saveTo('${directory.path}/$fileName');
+    final filePath = '${directory.path}/$fileName';
+    await videoFile.saveTo('${directory.path}/$fileName');
+    final file = File(filePath);
+    await uploadFileToService(file);
   }
 }
 
