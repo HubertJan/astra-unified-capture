@@ -1,23 +1,23 @@
-import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 
-final _fileUploadUri = Uri.http("192.168.2.1:8000");
+const _fileUploadUrl = "192.168.2.1:8000";
 
 Future<void> uploadFileToService(File file) async {
   HttpClient httpClient = HttpClient();
-
+  final filename = (file.uri.pathSegments.last);
+  final uri = Uri.http(_fileUploadUrl, "/$filename");
   try {
-    HttpClientRequest request = await httpClient.postUrl(_fileUploadUri);
-    request.headers.contentType = ContentType('application', 'octet-stream');
-    request.contentLength = await file.length();
-    await request.addStream(file.openRead());
-    await request.close();
+    var request = http.Request('PUT', uri)
+      ..headers['content-type'] = 'application/octet-stream'
+      ..bodyBytes = await file.readAsBytes();
 
-    HttpClientResponse response = await request.close();
-    await response.transform(utf8.decoder).forEach(print);
+    var response = await http.Client().send(request);
+    print('Response status: ${response.statusCode}');
   } catch (e) {
     print('Error uploading file: $e');
   } finally {
     httpClient.close();
   }
 }
+//curl -v -F file=1.txt http://192.168.2.1:8000

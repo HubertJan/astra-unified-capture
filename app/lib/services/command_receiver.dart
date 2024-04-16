@@ -47,8 +47,10 @@ class CommandReceiver {
   Future<void> connect() async {
     try {
       final result = await _client.connect();
-      if (result?.state == MqttConnectionState.connected) {
+      _client.connectionStatus;
+      if (_client.connectionStatus?.state == MqttConnectionState.connected) {
         _isAutoConnecting = false;
+
         _client.subscribe("recording", MqttQos.atMostOnce);
         _client.updates?.listen((event) {
           switch (event.last.payload) {

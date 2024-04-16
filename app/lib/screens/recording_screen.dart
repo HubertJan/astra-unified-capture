@@ -43,7 +43,15 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     if (recorder case CameraRecorder recorder) {
       cameraRecorder = recorder;
       ref.read(commandControllerProvider.notifier).turnOnAutoConnect();
-      ref.listen(commandControllerProvider, (before, now) {
+      setState(() {});
+      return;
+    }
+    setState(() {});
+  }
+
+  void _updateRecorder() {
+    if (cameraRecorder case CameraRecorder recorder) {
+      ref.listen<ControllerState>(commandControllerProvider, (before, now) {
         final wasRecording = switch (before) {
           ConnectedControllerState value => value.isRecording,
           _ => false
@@ -54,14 +62,12 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
           _ => false
         };
         if (wasRecording && !isRecording) {
-          cameraRecorder?.stopRecording();
+          recorder.stopRecording();
         }
         if (!wasRecording && isRecording) {
-          cameraRecorder?.startRecording();
+          recorder.startRecording();
         }
       });
-      setState(() {});
-      return;
     }
   }
 
@@ -71,6 +77,8 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
       _initializeCameraController();
       _isInitial = false;
     }
+
+    _updateRecorder();
 
     final controllerState = ref.watch(commandControllerProvider);
     final networkIP = ref.watch(networkIPProvider);
