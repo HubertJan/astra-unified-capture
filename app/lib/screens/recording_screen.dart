@@ -85,7 +85,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Astra Bremen - Live Camera'),
+        title: Text('Astra Bremen - Record'),
       ),
       body: Stack(
         children: [
