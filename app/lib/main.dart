@@ -8,8 +8,15 @@ class CameraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: RecordingScreen(),
+    return MaterialApp(
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(103, 58, 183, 1),
+          brightness: Brightness.light,
+        ),
+      ),
+      home: const RecordingScreen(),
     );
   }
 }

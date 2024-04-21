@@ -74,4 +74,8 @@ class CommandController extends _$CommandController {
       state = DisconnectedControllerState();
     }
   }
+
+  String get targetServerIP {
+    return _receiver.currentTargetServerIP;
+  }
 }

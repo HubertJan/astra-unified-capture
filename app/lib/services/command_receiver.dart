@@ -5,12 +5,17 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 class CommandReceiver {
+  static const String targetServerIP = '192.168.2.1';
   void Function(bool isRecording)? onRecordingUpdate;
   final MqttServerClient _client =
-      MqttServerClient('192.168.2.1', 'camera-app');
+      MqttServerClient(CommandReceiver.targetServerIP, 'camera-app');
   bool _isAutoConnecting = false;
 
   bool get isAutoConnecting => _isAutoConnecting;
+
+  String get currentTargetServerIP {
+    return CommandReceiver.targetServerIP;
+  }
 
   set onDisconnected(void Function()? callback) {
     _client.onDisconnected = callback;

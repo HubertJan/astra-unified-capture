@@ -84,39 +84,55 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     final networkIP = ref.watch(networkIPProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Camera example'),
+        centerTitle: true,
+        title: Text('Astra Bremen - Live Camera'),
       ),
       body: Stack(
         children: [
           Column(
             children: <Widget>[
+              const SizedBox(
+                height: 30,
+              ),
               networkIP.maybeMap(
-                data: (ip) => Text(ip.value ?? "No IP"),
+                data: (ip) =>
+                    _DefaultText("This Phone's IP: ${ip.value ?? "No IP"}"),
                 orElse: () => const SizedBox(),
               ),
               switch (controllerState) {
                 DisconnectedControllerState() => Column(
                     children: [
-                      const Text("Disconnected"),
+                      _DefaultText(
+                        "Disconnected",
+                      ),
                       TextButton(
                         onPressed: () => ref
                             .read(commandControllerProvider.notifier)
                             .turnOnAutoConnect(),
-                        child: const Text("Try auto connecting"),
+                        child: _DefaultText(
+                          "Try auto connecting",
+                        ),
                       )
                     ],
                   ),
                 ConnectingControllerState state => Column(
                     children: [
-                      const Text("Loading"),
-                      Text(
-                          "Auto Retry: ${state.isAutoConnecting ? "True" : "False"}")
+                      _DefaultText(
+                        "Looking for the server",
+                      ),
+                      _DefaultText(
+                        "Auto Retry: ${state.isAutoConnecting ? "True" : "False"}",
+                      )
                     ],
                   ),
                 ConnectedControllerState value => Column(
                     children: [
-                      const Text("Connected"),
-                      Text("Recording: ${value.isRecording}")
+                      _DefaultText(
+                        "Connected",
+                      ),
+                      _DefaultText(
+                        "Recording: ${value.isRecording}",
+                      )
                     ],
                   ),
               },
@@ -128,10 +144,28 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                   ),
                 ),
               ),
+              Text(
+                  "Tip: Please turn off mobile data and connect to the server WIFI. \nThe server should have the following IP: ${ref.read(commandControllerProvider.notifier).targetServerIP}"),
+              const SizedBox(
+                height: 30,
+              ),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DefaultText extends StatelessWidget {
+  final String text;
+  _DefaultText(this.text);
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.bodyLarge,
     );
   }
 }
