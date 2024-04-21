@@ -95,11 +95,30 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                 orElse: () => const SizedBox(),
               ),
               switch (controllerState) {
-                DisconnectedControllerState() => const Text("Error"),
-                ConnectingControllerState state => Text(
-                    "Loading\n Auto Retry:  ${state.isAutoConnecting ? "True" : "False"}"),
-                ConnectedControllerState value =>
-                  Text("Connected, Recording: ${value.isRecording}"),
+                DisconnectedControllerState() => Column(
+                    children: [
+                      const Text("Disconnected"),
+                      TextButton(
+                        onPressed: () => ref
+                            .read(commandControllerProvider.notifier)
+                            .turnOnAutoConnect(),
+                        child: const Text("Try auto connecting"),
+                      )
+                    ],
+                  ),
+                ConnectingControllerState state => Column(
+                    children: [
+                      const Text("Loading"),
+                      Text(
+                          "Auto Retry: ${state.isAutoConnecting ? "True" : "False"}")
+                    ],
+                  ),
+                ConnectedControllerState value => Column(
+                    children: [
+                      const Text("Connected"),
+                      Text("Recording: ${value.isRecording}")
+                    ],
+                  ),
               },
               Expanded(
                 child: Padding(
