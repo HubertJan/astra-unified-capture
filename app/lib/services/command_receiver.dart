@@ -20,6 +20,10 @@ class CommandReceiver {
     _client.onConnected = callback;
   }
 
+  set onAutoReconnect(void Function()? callback) {
+    _client.onAutoReconnect = callback;
+  }
+
   void disconnect() {
     _client.disconnect();
   }
@@ -46,11 +50,9 @@ class CommandReceiver {
 
   Future<void> connect() async {
     try {
-      final result = await _client.connect();
-      _client.connectionStatus;
-      if (_client.connectionStatus?.state == MqttConnectionState.connected) {
-        _isAutoConnecting = false;
+      await _client.connect();
 
+      if (_client.connectionStatus?.state == MqttConnectionState.connected) {
         _client.subscribe("recording", MqttQos.atMostOnce);
         _client.updates?.listen((event) {
           switch (event.last.payload) {

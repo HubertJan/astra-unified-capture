@@ -30,8 +30,12 @@ class CommandController extends _$CommandController {
     _receiver.onConnected = () {
       state = ConnectedControllerState(isRecording: false);
     };
+    _receiver.onAutoReconnect = () {
+      state = ConnectingControllerState(isAutoConnecting: true);
+    };
     _receiver.onDisconnected = () {
       if (_receiver.isAutoConnecting) {
+        state = ConnectingControllerState(isAutoConnecting: true);
         return;
       }
       state = DisconnectedControllerState();
@@ -39,11 +43,6 @@ class CommandController extends _$CommandController {
     _receiver.onRecordingUpdate = (isRecording) {
       state = ConnectedControllerState(isRecording: isRecording);
     };
-    ref.listen(networkIPProvider, (previous, next) {
-      if (next.value == null) {
-        state = DisconnectedControllerState();
-      }
-    });
     return DisconnectedControllerState();
   }
 
