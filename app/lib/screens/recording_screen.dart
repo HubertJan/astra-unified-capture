@@ -4,6 +4,7 @@ import 'package:app/provider/network_ip.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:keep_screen_on/keep_screen_on.dart';
 
 class RecordingScreen extends ConsumerStatefulWidget {
   const RecordingScreen({super.key});
@@ -74,6 +75,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isInitial) {
+      KeepScreenOn.turnOn();
       _initializeCameraController();
       _isInitial = false;
     }

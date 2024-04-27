@@ -28,6 +28,10 @@ class CommandController extends _$CommandController {
   @override
   ControllerState build() {
     _receiver.onConnected = () {
+      if (state case ConnectedControllerState(isRecording: final isRecording)) {
+        state = ConnectedControllerState(isRecording: isRecording);
+        return;
+      }
       state = ConnectedControllerState(isRecording: false);
     };
     _receiver.onAutoReconnect = () {
