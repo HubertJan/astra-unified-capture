@@ -27,13 +27,6 @@ class CommandController extends _$CommandController {
 
   @override
   ControllerState build() {
-    _receiver.onConnected = () {
-      if (state case ConnectedControllerState(isRecording: final isRecording)) {
-        state = ConnectedControllerState(isRecording: isRecording);
-        return;
-      }
-      state = ConnectedControllerState(isRecording: false);
-    };
     _receiver.onAutoReconnect = () {
       state = ConnectingControllerState(isAutoConnecting: true);
     };
@@ -66,9 +59,10 @@ class CommandController extends _$CommandController {
   void turnOffAutoConnect() {
     if (state
         case DisconnectedControllerState _ || ConnectingControllerState _) {
-      state = ConnectingControllerState(isAutoConnecting: true);
+      state = ConnectingControllerState(isAutoConnecting: false);
     }
     _receiver.turnOffAutoConnect();
+    _receiver.disconnect();
   }
 
   void disconnect() {

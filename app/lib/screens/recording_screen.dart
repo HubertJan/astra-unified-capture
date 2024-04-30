@@ -53,6 +53,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   void _updateRecorder() {
     if (cameraRecorder case CameraRecorder recorder) {
       ref.listen<ControllerState>(commandControllerProvider, (before, now) {
+        if (now case ConnectingControllerState()) {
+          return;
+        }
         final wasRecording = switch (before) {
           ConnectedControllerState value => value.isRecording,
           _ => false
@@ -124,6 +127,14 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                       ),
                       _DefaultText(
                         "Auto Retry: ${state.isAutoConnecting ? "True" : "False"}",
+                      ),
+                      TextButton(
+                        onPressed: () => ref
+                            .read(commandControllerProvider.notifier)
+                            .turnOffAutoConnect(),
+                        child: _DefaultText(
+                          "Give up looking",
+                        ),
                       )
                     ],
                   ),
