@@ -1,4 +1,5 @@
 import 'package:app/provider/network_ip.dart';
+import 'package:app/service_provider/command_receiver_provider.dart';
 import 'package:app/services/command_receiver.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -22,22 +23,21 @@ class ConnectedControllerState extends ControllerState {
 
 @riverpod
 class CommandController extends _$CommandController {
-  final _receiver = CommandReceiver();
   final controllerState = DisconnectedControllerState;
 
   @override
   ControllerState build() {
-    _receiver.onAutoReconnect = () {
+    ref.watch(commandReceiverProvider).onAutoReconnect = () {
       state = ConnectingControllerState(isAutoConnecting: true);
     };
-    _receiver.onDisconnected = () {
-      if (_receiver.isAutoConnecting) {
+    ref.watch(commandReceiverProvider).onDisconnected = () {
+      if (ref.read(commandReceiverProvider).isAutoConnecting) {
         state = ConnectingControllerState(isAutoConnecting: true);
         return;
       }
       state = DisconnectedControllerState();
     };
-    _receiver.onRecordingUpdate = (isRecording) {
+    ref.watch(commandReceiverProvider).onRecordingUpdate = (isRecording) {
       state = ConnectedControllerState(isRecording: isRecording);
     };
     return DisconnectedControllerState();
@@ -46,13 +46,13 @@ class CommandController extends _$CommandController {
   void connect() {
     if (state case DisconnectedControllerState _) {
       state = ConnectingControllerState(
-          isAutoConnecting: _receiver.isAutoConnecting);
-      _receiver.connect();
+          isAutoConnecting: ref.read(commandReceiverProvider).isAutoConnecting);
+      ref.read(commandReceiverProvider).connect();
     }
   }
 
   void turnOnAutoConnect() {
-    _receiver.turnOnAutoConnect();
+    ref.read(commandReceiverProvider).turnOnAutoConnect();
     connect();
   }
 
@@ -61,19 +61,19 @@ class CommandController extends _$CommandController {
         case DisconnectedControllerState _ || ConnectingControllerState _) {
       state = ConnectingControllerState(isAutoConnecting: false);
     }
-    _receiver.turnOffAutoConnect();
-    _receiver.disconnect();
+    ref.read(commandReceiverProvider).turnOffAutoConnect();
+    ref.read(commandReceiverProvider).disconnect();
   }
 
   void disconnect() {
     if (state case ConnectedControllerState _) {
-      _receiver.disconnect();
+      ref.read(commandReceiverProvider).disconnect();
       turnOffAutoConnect();
       state = DisconnectedControllerState();
     }
   }
 
   String get targetServerIP {
-    return _receiver.currentTargetServerIP;
+    return ref.read(commandReceiverProvider).currentTargetServerIP;
   }
 }

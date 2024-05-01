@@ -20,4 +20,3 @@ Future<void> uploadFileToService(File file) async {
     httpClient.close();
   }
 }
-//curl -v -F file=1.txt http://192.168.2.1:8000
