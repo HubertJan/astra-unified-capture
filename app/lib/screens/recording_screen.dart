@@ -41,6 +41,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
 
   Future<void> _initializeCameraController() async {
     final recorder = await CameraRecorder.setupCameraRecorder();
+    if (!ref.context.mounted) {
+      return;
+    }
     if (recorder case CameraRecorder recorder) {
       cameraRecorder = recorder;
       ref.read(commandControllerProvider.notifier).turnOnAutoConnect();
@@ -90,7 +93,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Astra Bremen - Record'),
+        title: const Text('Astra Bremen - Record'),
       ),
       body: Stack(
         children: [
@@ -172,10 +175,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
 
 class _DefaultText extends StatelessWidget {
   final String text;
-  _DefaultText(this.text);
+  const _DefaultText(this.text);
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Text(
       text,
       style: Theme.of(context).textTheme.bodyLarge,

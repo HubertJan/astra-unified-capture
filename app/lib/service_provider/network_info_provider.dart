@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'network_info_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 NetworkInfo networkInfo(NetworkInfoRef ref) {
   return NetworkInfo();
 }
