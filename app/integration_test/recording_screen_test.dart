@@ -64,8 +64,6 @@ void main() {
       final mqttClient = MockMqttServerClient();
       mqttClient.mockConnectionStatus(MqttConnectionState.connecting);
       final networkInfo = MockNetworkInfo();
-      final directory = await getApplicationDocumentsDirectory();
-      final fileCountBefore = await directory.list().length;
       when(() => networkInfo.getWifiIP()).thenAnswer((invocation) async {
         await Future.delayed(Duration.zero);
         return "192.168.2.10";
