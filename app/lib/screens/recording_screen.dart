@@ -60,12 +60,14 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
           return;
         }
         final wasRecording = switch (before) {
-          ConnectedControllerState value => value.isRecording,
+          ConnectedControllerState value =>
+            value.recordingState == RecordingState.recording,
           _ => false
         };
 
         final isRecording = switch (now) {
-          ConnectedControllerState value => value.isRecording,
+          ConnectedControllerState value =>
+            value.recordingState == RecordingState.recording,
           _ => false
         };
         if (wasRecording && !isRecording) {
@@ -107,35 +109,35 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                     _DefaultText("This Phone's IP: ${ip.value ?? "No IP"}"),
                 orElse: () => const SizedBox(),
               ),
-              switch (controllerState) {
+              switch (controllerState.state) {
                 DisconnectedControllerState() => Column(
                     children: [
-                      _DefaultText(
+                      const _DefaultText(
                         "Disconnected",
                       ),
                       TextButton(
                         onPressed: () => ref
                             .read(commandControllerProvider.notifier)
                             .turnOnAutoConnect(),
-                        child: _DefaultText(
+                        child: const _DefaultText(
                           "Try auto connecting",
                         ),
                       )
                     ],
                   ),
-                ConnectingControllerState state => Column(
+                ConnectingControllerState _ => Column(
                     children: [
-                      _DefaultText(
+                      const _DefaultText(
                         "Looking for the server",
                       ),
                       _DefaultText(
-                        "Auto Retry: ${state.isAutoConnecting ? "True" : "False"}",
+                        "Auto Retry: ${controllerState.isAutoConnecting ? "True" : "False"}",
                       ),
                       TextButton(
                         onPressed: () => ref
                             .read(commandControllerProvider.notifier)
                             .turnOffAutoConnect(),
-                        child: _DefaultText(
+                        child: const _DefaultText(
                           "Give up looking",
                         ),
                       )
@@ -143,11 +145,11 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                   ),
                 ConnectedControllerState value => Column(
                     children: [
-                      _DefaultText(
+                      const _DefaultText(
                         "Connected",
                       ),
                       _DefaultText(
-                        "Recording: ${value.isRecording}",
+                        "Recording: ${value.recordingState}",
                       )
                     ],
                   ),
