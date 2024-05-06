@@ -37,6 +37,24 @@
 			"options": {
 				"cwd": "${workspaceFolder}/app"
 			},
+		},
+		{
+			"label": "Execute Integration Tests With Logs",
+			"type": "flutter",
+			"command": "flutter",
+			"args": [
+				"pub",
+				"global",
+				"run",
+				"patrol_cli:main",
+				"develop", 
+				"-t",
+				"integration_test/recording_screen_test.dart"
+			],
+			"group": "test",
+			"options": {
+				"cwd": "${workspaceFolder}/app"
+			},
 		}
 	]
 }

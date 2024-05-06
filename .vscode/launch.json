@@ -23,6 +23,13 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
+        },
+        {
+            "name": "attach debugger",
+            "request": "attach",
+            "type": "dart",
+            "cwd": "integration_test",
+            "vmServiceUri": "${command:dart.promptForVmService}"
         }
     ]
 }

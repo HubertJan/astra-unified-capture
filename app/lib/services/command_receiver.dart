@@ -9,11 +9,30 @@ class CommandReceiver {
   void Function(bool isRecording)? onRecordingUpdate;
   final MqttServerClient _client;
   bool _isAutoConnecting = false;
+  void Function()? onConnected;
+  bool get isAutoConnecting => _isAutoConnecting;
 
   CommandReceiver({MqttServerClient? client})
-      : _client = client ?? MqttServerClient(_targetServerIP, 'camera-app');
-
-  bool get isAutoConnecting => _isAutoConnecting;
+      : _client = client ?? MqttServerClient(_targetServerIP, 'camera-app') {
+    _client.onConnected = () {
+      print("Connected to server");
+      _client.updates?.listen((event) {
+        print("Received message: ${event.last.payload}");
+        switch (event.last.payload) {
+          case MqttPublishMessage payload:
+            final message = utf8.decode(payload.payload.message);
+            if (message == "ON") {
+              onRecordingUpdate?.call(true);
+            }
+            if (message == "OFF") {
+              onRecordingUpdate?.call(false);
+            }
+            break;
+        }
+      });
+      onConnected?.call();
+    };
+  }
 
   String get currentTargetServerIP {
     // TODO: Might be lying if different client
@@ -22,10 +41,6 @@ class CommandReceiver {
 
   set onDisconnected(void Function()? callback) {
     _client.onDisconnected = callback;
-  }
-
-  set onConnected(void Function()? callback) {
-    _client.onConnected = callback;
   }
 
   set onAutoReconnect(void Function()? callback) {
@@ -59,22 +74,6 @@ class CommandReceiver {
   Future<void> connect() async {
     try {
       await _client.connect();
-      if (_client.connectionStatus?.state == MqttConnectionState.connected) {
-        _client.subscribe("recording", MqttQos.atMostOnce);
-        _client.updates?.listen((event) {
-          switch (event.last.payload) {
-            case MqttPublishMessage payload:
-              final message = utf8.decode(payload.payload.message);
-              if (message == "ON") {
-                onRecordingUpdate?.call(true);
-              }
-              if (message == "OFF") {
-                onRecordingUpdate?.call(false);
-              }
-              break;
-          }
-        });
-      }
     } catch (e) {
       print("Error: $e");
       return;
