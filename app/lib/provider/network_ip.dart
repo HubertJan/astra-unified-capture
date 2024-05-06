@@ -1,25 +1,30 @@
 import 'dart:async';
-
+import 'package:app/service_provider/network_info_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:network_info_plus/network_info_plus.dart';
 part 'network_ip.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class NetworkIP extends _$NetworkIP {
-  final info = NetworkInfo();
-
+  var _isDisposed = false;
   Future<void> _update() async {
-    state = AsyncData(await info.getWifiIP());
+    final ip = await ref.read(networkInfoProvider).getWifiIP();
+    if (_isDisposed) {
+      return;
+    }
+    state = AsyncData(ip);
     Future.delayed(const Duration(seconds: 5), _update);
   }
 
   @override
   Future<String?> build() async {
-    Timer(const Duration(seconds: 5), () async {
+    final timer = Timer(const Duration(seconds: 5), () async {
       await _update();
     });
-
-    return await info.getWifiIP();
+    ref.onDispose(() {
+      _isDisposed = true;
+      timer.cancel();
+    });
+    return await ref.watch(networkInfoProvider).getWifiIP();
   }
 }

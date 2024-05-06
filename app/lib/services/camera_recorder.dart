@@ -52,6 +52,7 @@ class CameraRecorder {
     final directory = await getApplicationDocumentsDirectory();
     final fileName = DateTime.now().millisecondsSinceEpoch;
     final filePath = '${directory.path}/$fileName.mp4';
+    print("Saving video to $filePath");
     await videoFile.saveTo(filePath);
     final file = File(filePath);
     await uploadFileToService(file);

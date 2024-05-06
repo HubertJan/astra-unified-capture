@@ -41,6 +41,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
 
   Future<void> _initializeCameraController() async {
     final recorder = await CameraRecorder.setupCameraRecorder();
+    if (!ref.context.mounted) {
+      return;
+    }
     if (recorder case CameraRecorder recorder) {
       cameraRecorder = recorder;
       ref.read(commandControllerProvider.notifier).turnOnAutoConnect();
@@ -53,6 +56,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   void _updateRecorder() {
     if (cameraRecorder case CameraRecorder recorder) {
       ref.listen<ControllerState>(commandControllerProvider, (before, now) {
+        if (now case ConnectingControllerState()) {
+          return;
+        }
         final wasRecording = switch (before) {
           ConnectedControllerState value => value.isRecording,
           _ => false
@@ -87,7 +93,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Astra Bremen - Record'),
+        title: const Text('Astra Bremen - Record'),
       ),
       body: Stack(
         children: [
@@ -124,6 +130,14 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                       ),
                       _DefaultText(
                         "Auto Retry: ${state.isAutoConnecting ? "True" : "False"}",
+                      ),
+                      TextButton(
+                        onPressed: () => ref
+                            .read(commandControllerProvider.notifier)
+                            .turnOffAutoConnect(),
+                        child: _DefaultText(
+                          "Give up looking",
+                        ),
                       )
                     ],
                   ),
@@ -161,10 +175,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
 
 class _DefaultText extends StatelessWidget {
   final String text;
-  _DefaultText(this.text);
+  const _DefaultText(this.text);
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Text(
       text,
       style: Theme.of(context).textTheme.bodyLarge,
