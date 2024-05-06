@@ -16,6 +16,7 @@ class CommandReceiver {
       : _client = client ?? MqttServerClient(_targetServerIP, 'camera-app') {
     _client.onConnected = () {
       print("Connected to server");
+      _client.subscribe("recording", MqttQos.atMostOnce);
       _client.updates?.listen((event) {
         print("Received message: ${event.last.payload}");
         switch (event.last.payload) {
@@ -73,6 +74,9 @@ class CommandReceiver {
 
   Future<void> connect() async {
     try {
+      if (_client.connectionStatus?.state == MqttConnectionState.connected) {
+        return;
+      }
       await _client.connect();
     } catch (e) {
       print("Error: $e");
