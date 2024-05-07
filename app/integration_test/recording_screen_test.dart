@@ -4,6 +4,7 @@ import 'package:app/main.dart';
 import 'package:app/service_provider/command_receiver_provider.dart';
 import 'package:app/service_provider/network_info_provider.dart';
 import 'package:app/services/command_receiver.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
@@ -60,7 +61,7 @@ void main() {
       "Connect to server, record one video, lose connection for a bit, reconnect and store the recorded video",
       ($) async {
     var createdFiles = 0;
-    IOOverrides.runZoned(() async {
+    await IOOverrides.runZoned(() async {
       final mqttClient = MockMqttServerClient();
       mqttClient.mockConnectionStatus(MqttConnectionState.connecting);
       final networkInfo = MockNetworkInfo();
@@ -91,11 +92,13 @@ void main() {
       await $.pumpAndSettle();
       expect(find.text('Recording: Recording'), findsOneWidget);
       mqttClient.mockReceivedMessage("OFF");
+      await Future.delayed(const Duration(seconds: 3));
       await $.pumpAndSettle();
       expect(find.text('Recording: Not Recording'), findsOneWidget);
       expect(createdFiles, 1);
     }, createFile: (String path) {
       createdFiles++;
+      //TODO: Fix incomplete TestFile implementation
       return TestFile();
     });
   });

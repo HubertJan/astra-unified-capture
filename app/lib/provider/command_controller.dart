@@ -32,6 +32,11 @@ enum RecordingState {
 class ConnectedControllerState extends ConnectionState {
   final RecordingState recordingState;
   ConnectedControllerState(this.recordingState);
+
+  @override
+  String toString() {
+    return 'Connected: $recordingState';
+  }
 }
 
 class ControllerState {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -39,7 +40,8 @@ class CameraRecorder {
     if (_isRecording) {
       return;
     }
-    _cameraController.startVideoRecording();
+    print("Starting video recording");
+    await _cameraController.startVideoRecording();
     _isRecording = true;
   }
 
@@ -48,6 +50,7 @@ class CameraRecorder {
       return;
     }
     _isRecording = false;
+    print("Stopping video recordings");
     final videoFile = await _cameraController.stopVideoRecording();
     final directory = await getApplicationDocumentsDirectory();
     final fileName = DateTime.now().millisecondsSinceEpoch;

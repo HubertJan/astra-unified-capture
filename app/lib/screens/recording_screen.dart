@@ -59,21 +59,25 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
         if (now case ConnectingControllerState()) {
           return;
         }
-        final wasRecording = switch (before) {
+
+        print("Before: ${before?.state}, Now: ${now.state}");
+        final wasRecording = switch (before?.state) {
           ConnectedControllerState value =>
             value.recordingState == RecordingState.recording,
           _ => false
         };
 
-        final isRecording = switch (now) {
+        final isRecording = switch (now.state) {
           ConnectedControllerState value =>
             value.recordingState == RecordingState.recording,
           _ => false
         };
         if (wasRecording && !isRecording) {
+          print("Stopping recording now");
           recorder.stopRecording();
         }
         if (!wasRecording && isRecording) {
+          print("Starting recording now");
           recorder.startRecording();
         }
       });
