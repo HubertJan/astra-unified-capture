@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 import RPi.GPIO as GPIO
 import signal                   
 import sys
+import uuid
 
 EVENT_GPIO = 17
 
@@ -47,7 +48,7 @@ def main():
     while True:
         # Refactor, other publisher might overwrite recording => Would not work anymore
         if GPIO.input(EVENT_GPIO) == 1 and previous_state != 1:
-            client.publish("recording","ON", retain=True)
+            client.publish("recording",str(uuid.uuid4()), retain=True)
             previous_state = 1
         if GPIO.input(EVENT_GPIO) == 0 and previous_state != 0: 
             client.publish("recording","OFF", retain=True)

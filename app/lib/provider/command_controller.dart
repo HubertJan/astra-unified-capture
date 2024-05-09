@@ -11,23 +11,28 @@ class ConnectingControllerState extends ConnectionState {
   ConnectingControllerState();
 }
 
-enum RecordingState {
-  recording,
-  notRecording,
-  unknown;
-
+sealed class RecordingState {
   @override
   String toString() {
     switch (this) {
-      case RecordingState.recording:
+      case Recording():
         return 'Recording';
-      case RecordingState.notRecording:
+      case NotRecording():
         return 'Not Recording';
-      case RecordingState.unknown:
+      case Unknown():
         return 'Unknown';
     }
   }
 }
+
+class Recording extends RecordingState {
+  final String id;
+  Recording(this.id);
+}
+
+class NotRecording extends RecordingState {}
+
+class Unknown extends RecordingState {}
 
 class ConnectedControllerState extends ConnectionState {
   final RecordingState recordingState;
@@ -68,15 +73,13 @@ class CommandController extends _$CommandController {
       }
       state = state.copyWith(state: DisconnectedControllerState());
     };
-    ref.watch(commandReceiverProvider).onRecordingUpdate = (isRecording) {
+    ref.watch(commandReceiverProvider).onRecordingUpdate = (recordingId) {
       state = state.copyWith(
-          state: ConnectedControllerState(isRecording
-              ? RecordingState.recording
-              : RecordingState.notRecording));
+          state: ConnectedControllerState(
+              recordingId != null ? Recording(recordingId) : NotRecording()));
     };
     ref.watch(commandReceiverProvider).onConnected = () {
-      state = state.copyWith(
-          state: ConnectedControllerState(RecordingState.unknown));
+      state = state.copyWith(state: ConnectedControllerState(Unknown()));
     };
     return ControllerState(ConnectingControllerState(), false);
   }

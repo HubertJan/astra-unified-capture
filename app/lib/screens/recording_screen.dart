@@ -1,6 +1,8 @@
+import 'package:app/provider/device_name.dart';
 import 'package:app/services/camera_recorder.dart';
 import 'package:app/provider/command_controller.dart';
 import 'package:app/provider/network_ip.dart';
+import 'package:app/widgets/show_text_input_dialog.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,14 +18,6 @@ class RecordingScreen extends ConsumerStatefulWidget {
 class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   CameraRecorder? cameraRecorder;
   bool _isInitial = true;
-
-  void onRecordingUpdate(bool shouldBeRecording) {
-    if (shouldBeRecording) {
-      cameraRecorder?.startRecording();
-    } else {
-      cameraRecorder?.stopRecording();
-    }
-  }
 
   Widget _cameraPreviewWidget() {
     if (cameraRecorder case CameraRecorder cameraRecorder) {
@@ -62,19 +56,22 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
 
         print("Before: ${before?.state}, Now: ${now.state}");
         final wasRecording = switch (before?.state) {
-          ConnectedControllerState value =>
-            value.recordingState == RecordingState.recording,
+          ConnectedControllerState value => value.recordingState is Recording,
           _ => false
         };
 
         final isRecording = switch (now.state) {
-          ConnectedControllerState value =>
-            value.recordingState == RecordingState.recording,
+          ConnectedControllerState value => value.recordingState is Recording,
           _ => false
         };
         if (wasRecording && !isRecording) {
+          final recordingId = switch (before?.state) {
+            ConnectedControllerState(recordingState: Recording(id: final id)) =>
+              id,
+            _ => null
+          };
           print("Stopping recording now");
-          recorder.stopRecording();
+          recorder.stopRecording(recordingId!);
         }
         if (!wasRecording && isRecording) {
           print("Starting recording now");
@@ -84,18 +81,58 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     }
   }
 
+  Future<void> _changeName({bool hasToChangeName = false}) async {
+    String? userName;
+    while (userName == null) {
+      userName = await showTextInputDialog(context, "Type in the device name",
+          (proposedName) {
+        if (proposedName.trim() != proposedName) {
+          return Invalid(
+              errorMessage: "Name cannot have leading or trailing spaces");
+        }
+        if (proposedName.isEmpty) {
+          return Invalid(errorMessage: "Name cannot be empty");
+        }
+        if (proposedName.length < 5) {
+          return Invalid(
+              errorMessage: "Name must be at least 5 characters long");
+        }
+        return Success();
+      });
+      if (!hasToChangeName) {
+        break;
+      }
+    }
+    if (userName == null) {
+      return;
+    }
+    await ref.read(deviceNameProvider.notifier).changeName(userName);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isInitial) {
       KeepScreenOn.turnOn();
       _initializeCameraController();
       _isInitial = false;
+      ref.listen(deviceNameProvider, (_, next) async {
+        if (next case AsyncData(value: null)) {
+          if (!context.mounted) {
+            return;
+          }
+          await _changeName();
+        }
+      });
     }
 
     _updateRecorder();
 
     final controllerState = ref.watch(commandControllerProvider);
     final networkIP = ref.watch(networkIPProvider);
+    final deviceName = ref.watch(deviceNameProvider);
+    if (deviceName case AsyncData(value: String name)) {
+      cameraRecorder?.userName = name;
+    }
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -111,6 +148,21 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
               networkIP.maybeMap(
                 data: (ip) =>
                     _DefaultText("This Phone's IP: ${ip.value ?? "No IP"}"),
+                orElse: () => const SizedBox(),
+              ),
+              deviceName.maybeMap(
+                data: (name) => Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _DefaultText("Phone's Name: ${name.value ?? "No Name"}"),
+                    TextButton(
+                      onPressed: () async {
+                        await _changeName(hasToChangeName: false);
+                      },
+                      child: const Text("Change Name"),
+                    )
+                  ],
+                ),
                 orElse: () => const SizedBox(),
               ),
               switch (controllerState.state) {

@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 
 class CameraRecorder {
   final CameraController _cameraController;
+  String userName = "noname";
   bool _isRecording = false;
 
   CameraRecorder._({required CameraController cameraController})
@@ -45,7 +46,7 @@ class CameraRecorder {
     _isRecording = true;
   }
 
-  Future<void> stopRecording() async {
+  Future<void> stopRecording(String recordingId) async {
     if (!_isRecording) {
       return;
     }
@@ -53,12 +54,12 @@ class CameraRecorder {
     print("Stopping video recordings");
     final videoFile = await _cameraController.stopVideoRecording();
     final directory = await getApplicationDocumentsDirectory();
-    final fileName = DateTime.now().millisecondsSinceEpoch;
+    final fileName = "$userName-${DateTime.now().millisecondsSinceEpoch}";
     final filePath = '${directory.path}/$fileName.mp4';
     print("Saving video to $filePath");
     await videoFile.saveTo(filePath);
     final file = File(filePath);
-    await uploadFileToService(file);
+    await uploadFileToService(file, recordingId);
   }
 }
 

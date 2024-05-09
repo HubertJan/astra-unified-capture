@@ -6,7 +6,7 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 
 class CommandReceiver {
   static const String _targetServerIP = '192.168.2.1';
-  void Function(bool isRecording)? onRecordingUpdate;
+  void Function(String? recordingId)? onRecordingUpdate;
   final MqttServerClient _client;
   bool _isAutoConnecting = false;
   void Function()? onConnected;
@@ -22,11 +22,11 @@ class CommandReceiver {
         switch (event.last.payload) {
           case MqttPublishMessage payload:
             final message = utf8.decode(payload.payload.message);
-            if (message == "ON") {
-              onRecordingUpdate?.call(true);
+            if (message != "OFF") {
+              onRecordingUpdate?.call(message);
             }
             if (message == "OFF") {
-              onRecordingUpdate?.call(false);
+              onRecordingUpdate?.call(null);
             }
             break;
         }
