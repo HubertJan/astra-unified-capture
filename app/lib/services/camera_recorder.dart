@@ -23,7 +23,7 @@ class CameraRecorder {
     }
     final cameraController = CameraController(
       cameras.first,
-      kIsWeb ? ResolutionPreset.max : ResolutionPreset.medium,
+      ResolutionPreset.ultraHigh,
       enableAudio: true,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
