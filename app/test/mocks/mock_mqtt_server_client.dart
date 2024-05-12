@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:typed_data/typed_buffers.dart';
+import 'package:uuid/uuid.dart';
 
 class MockMqttServerClient extends Mock implements MqttServerClient {
   StreamController<MqttReceivedMessage<MqttMessage>>? messageStream;
@@ -61,6 +62,16 @@ class MockMqttServerClient extends Mock implements MqttServerClient {
 
   void mockReceivedMessage(String messageText) {
     messageStream?.add(FakeMqttReceivedMessage.prepareWithMessage(messageText));
+  }
+
+  String mockStartRecording() {
+    final recordingId = const Uuid().v4();
+    mockReceivedMessage(recordingId);
+    return recordingId;
+  }
+
+  void mockStopRecording() {
+    mockReceivedMessage("OFF");
   }
 }
 

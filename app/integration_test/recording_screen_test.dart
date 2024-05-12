@@ -1,13 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:app/main.dart';
 import 'package:app/service_provider/command_receiver_provider.dart';
 import 'package:app/service_provider/network_info_provider.dart';
 import 'package:app/services/command_receiver.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:patrol/patrol.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -15,7 +14,27 @@ import 'package:mqtt_client/mqtt_client.dart';
 import '../test/mocks/mock_mqtt_server_client.dart';
 import '../test/mocks/network_info_mock.dart';
 
-class TestFile extends Mock implements File {}
+class TestFile extends Mock implements File {
+  @override
+  final String path;
+
+  TestFile(this.path);
+
+  @override
+  Future<File> copy(String newPath) async {
+    return TestFile(newPath);
+  }
+
+  @override
+  Uri get uri {
+    return Uri.file(path);
+  }
+
+  @override
+  Future<Uint8List> readAsBytes() {
+    return Future.value(Uint8List(0));
+  }
+}
 
 void main() {
   setUpAll(() {
@@ -95,11 +114,12 @@ void main() {
       await Future.delayed(const Duration(seconds: 3));
       await $.pumpAndSettle();
       expect(find.text('Recording: Not Recording'), findsOneWidget);
-      expect(createdFiles, 1);
+      expect(createdFiles, 2);
+      // Assumes that the video is copied to a new file after being recorded
+      // => 2 files are created
     }, createFile: (String path) {
       createdFiles++;
-      //TODO: Fix incomplete TestFile implementation
-      return TestFile();
+      return TestFile(path);
     });
   });
 }

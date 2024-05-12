@@ -19,16 +19,15 @@ void main() {
     mockClient.mockConnectionStatus(MqttConnectionState.connected);
 
     bool isRecording = false;
-    receiver.onRecordingUpdate = (isRec) {
-      isRecording = isRec;
+    receiver.onRecordingUpdate = (recordingId) {
+      isRecording = recordingId != null;
     };
 
-    when(() => mockClient.updates).thenAnswer((invocation) async* {
-      yield [FakeMqttReceivedMessage.prepareWithMessage("ON")];
-    });
+    mockClient.mockReceivedMessage("ON");
 
     await receiver.connect();
     await Future.delayed(Duration.zero);
+
     expect(isRecording, true);
   });
 
@@ -38,22 +37,15 @@ void main() {
     mockClient.mockConnectionStatus(MqttConnectionState.connected);
 
     bool isRecording = false;
-    receiver.onRecordingUpdate = (isRec) {
-      isRecording = isRec;
+    receiver.onRecordingUpdate = (recordingId) {
+      isRecording = recordingId != null;
     };
 
-    final messageStream = StreamController();
-    when(() => mockClient.updates).thenAnswer((invocation) async* {
-      await for (final message in messageStream.stream) {
-        yield [message];
-      }
-    });
-
     await receiver.connect();
-    messageStream.add(FakeMqttReceivedMessage.prepareWithMessage("ON"));
+    mockClient.mockStartRecording();
     await Future.delayed(Duration.zero);
     expect(isRecording, true);
-    messageStream.add(FakeMqttReceivedMessage.prepareWithMessage("OFF"));
+    mockClient.mockStopRecording();
     await Future.delayed(Duration.zero);
     expect(isRecording, false);
   });
