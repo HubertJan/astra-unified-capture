@@ -1,7 +1,9 @@
+import 'package:app/provider/current_camera_settings.dart';
 import 'package:app/provider/device_name.dart';
 import 'package:app/services/camera_recorder.dart';
 import 'package:app/provider/command_controller.dart';
 import 'package:app/provider/network_ip.dart';
+import 'package:app/widgets/show_camera_settings_dialog.dart';
 import 'package:app/widgets/show_text_input_dialog.dart';
 
 import 'package:flutter/material.dart';
@@ -137,6 +139,31 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('Astra Bremen - Record'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Setup Camera',
+            onPressed: () async {
+              final currentSettings =
+                  await ref.watch(currentCameraSettingsProvider.future);
+              if (!context.mounted) {
+                return;
+              }
+              final settings =
+                  await showCameraSettingsDialog(context, currentSettings);
+              if (settings == null) {
+                return;
+              }
+              await ref
+                  .read(currentCameraSettingsProvider.notifier)
+                  .changeSettings(settings);
+              await cameraRecorder?.changeCameraSettings(
+                  resolutionPreset: settings.resolution, fps: settings.fps);
+              setState(() {});
+              1;
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [

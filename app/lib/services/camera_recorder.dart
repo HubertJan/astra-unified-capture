@@ -9,25 +9,43 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CameraRecorder {
-  final CameraController _cameraController;
+  CameraController _cameraController;
   String userName = "noname";
   bool _isRecording = false;
+  bool _isUsingCameraController = false;
+  void Function()? _onStopUsingCameraController;
 
   CameraRecorder._({required CameraController cameraController})
       : _cameraController = cameraController;
 
-  static Future<CameraRecorder?> setupCameraRecorder() async {
-    final cameras = await availableCameras();
-    if (cameras.isEmpty) {
-      return null;
-    }
+  static Future<CameraController?> _setupCameraController(
+      {required CameraDescription camera,
+      ResolutionPreset? resolutionPreset,
+      int? fps}) async {
     final cameraController = CameraController(
-      cameras.first,
+      camera,
       ResolutionPreset.ultraHigh,
       enableAudio: true,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
 
+    return cameraController;
+  }
+
+  static Future<CameraRecorder?> setupCameraRecorder(
+      {ResolutionPreset? resolutionPreset, int? fps}) async {
+    final cameras = await availableCameras();
+    if (cameras.isEmpty) {
+      return null;
+    }
+    final cameraController = await _setupCameraController(
+      camera: cameras.first,
+      resolutionPreset: resolutionPreset,
+      fps: fps,
+    );
+    if (cameraController == null) {
+      return null;
+    }
     try {
       await cameraController.initialize();
     } on CameraException catch (_) {
@@ -37,10 +55,37 @@ class CameraRecorder {
     return CameraRecorder._(cameraController: cameraController);
   }
 
+  Future<void> changeCameraSettings(
+      {ResolutionPreset? resolutionPreset, int? fps}) async {
+    final cameraController = await _setupCameraController(
+      camera: _cameraController.description,
+      resolutionPreset: resolutionPreset,
+      fps: fps,
+    );
+    if (!_isUsingCameraController) {
+      final oldController = _cameraController;
+      _cameraController = cameraController!;
+      await oldController.dispose();
+      try {
+        await cameraController.initialize();
+      } on CameraException catch (_) {}
+    } else {
+      _onStopUsingCameraController = () async {
+        final oldController = _cameraController;
+        _cameraController = cameraController!;
+        await oldController.dispose();
+        try {
+          await cameraController.initialize();
+        } on CameraException catch (_) {}
+      };
+    }
+  }
+
   Future<void> startRecording() async {
     if (_isRecording) {
       return;
     }
+    _isUsingCameraController = true;
     print("Starting video recording");
     await _cameraController.startVideoRecording();
     _isRecording = true;
@@ -60,6 +105,8 @@ class CameraRecorder {
     await videoFile.saveTo(filePath);
     final file = File(filePath);
     await uploadFileToService(file, recordingId);
+    _isUsingCameraController = false;
+    _onStopUsingCameraController?.call();
   }
 }
 
@@ -69,6 +116,7 @@ class CameraRecorderPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(context);
     return CameraPreview(
       recorder._cameraController,
     );
