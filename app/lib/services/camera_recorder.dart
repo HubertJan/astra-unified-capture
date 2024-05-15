@@ -24,7 +24,8 @@ class CameraRecorder {
       int? fps}) async {
     final cameraController = CameraController(
       camera,
-      ResolutionPreset.ultraHigh,
+      resolutionPreset ?? ResolutionPreset.veryHigh,
+      fps: fps ?? 60,
       enableAudio: true,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );

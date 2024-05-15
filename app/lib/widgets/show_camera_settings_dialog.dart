@@ -22,20 +22,28 @@ Future<CameraSettings?> showCameraSettingsDialog(
               value: selectedResolution,
               items: const [
                 DropdownMenuItem<ResolutionPreset>(
+                  value: ResolutionPreset.max,
+                  child: Text('Highest Supported'),
+                ),
+                DropdownMenuItem<ResolutionPreset>(
                   value: ResolutionPreset.ultraHigh,
-                  child: Text('Ultra High'),
+                  child: Text('2160p'),
+                ),
+                DropdownMenuItem<ResolutionPreset>(
+                  value: ResolutionPreset.veryHigh,
+                  child: Text('1080p'),
                 ),
                 DropdownMenuItem<ResolutionPreset>(
                   value: ResolutionPreset.high,
-                  child: Text('High'),
+                  child: Text('720p'),
                 ),
                 DropdownMenuItem<ResolutionPreset>(
                   value: ResolutionPreset.medium,
-                  child: Text('Medium'),
+                  child: Text('480p'),
                 ),
                 DropdownMenuItem<ResolutionPreset>(
                   value: ResolutionPreset.low,
-                  child: Text('Low'),
+                  child: Text('240p'),
                 ),
               ],
               onChanged: (value) {
