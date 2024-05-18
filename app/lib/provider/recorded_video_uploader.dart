@@ -48,6 +48,8 @@ class RecordedVideoUploader extends _$RecordedVideoUploader {
     if (videos == null || recordingIds == null) {
       return;
     }
+    final originalVideos = [...videos];
+    final originalRecordingIds = [...recordingIds];
     state = const AsyncData(0);
     for (var i = 0; i < videos.length; i++) {
       final file = File(videos[i]);
@@ -63,13 +65,21 @@ class RecordedVideoUploader extends _$RecordedVideoUploader {
     }
     videos.removeWhere((element) => element.isEmpty);
     recordingIds.removeWhere((element) => element.isEmpty);
+    final currentVideos = ref
+            .read(sharedPreferencesProvider)
+            .getStringList(_notUploadedVideoPathsKey) ??
+        [];
+    final currentRecordingIds =
+        ref.read(sharedPreferencesProvider).getStringList(_recordingIdsKey) ??
+            [];
+    currentVideos.removeWhere((element) => originalVideos.contains(element));
+    currentRecordingIds
+        .removeWhere((element) => originalRecordingIds.contains(element));
     assert(videos.length == recordingIds.length);
-    await ref
-        .read(sharedPreferencesProvider)
-        .setStringList(_notUploadedVideoPathsKey, videos);
-    await ref
-        .read(sharedPreferencesProvider)
-        .setStringList(_recordingIdsKey, recordingIds);
+    await ref.read(sharedPreferencesProvider).setStringList(
+        _notUploadedVideoPathsKey, [...videos, ...currentVideos]);
+    await ref.read(sharedPreferencesProvider).setStringList(
+        _recordingIdsKey, [...recordingIds, ...currentRecordingIds]);
     state = AsyncData(videos.length);
   }
 }
