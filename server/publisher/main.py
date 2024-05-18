@@ -42,14 +42,14 @@ def main():
     print("Start MQT Client")
     client = setup_mqtt_client()
     client.loop_start()
-    client.publish("recording","ON", retain=True)
-    print("Published 0N")
     setup_gpio()
     signal.signal(
         signal.SIGINT, 
         lambda sig, frame: signal_handler(sig, frame, client.loop_stop)
     )
     is_recording = False
+    client.publish("recording","OFF", retain=True)
+    GPIO.output(STATUS_RECORDING_GPIO, False)
     while True:
         # TODO: Refactor, other publisher might overwrite recording => Would not work anymore
         is_recording_pin = GPIO.input(START_RECORDING_GPIO)
