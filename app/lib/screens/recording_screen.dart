@@ -11,6 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keep_screen_on/keep_screen_on.dart';
 
+const uploadFinishedSnackBar = SnackBar(
+  content: Text('Upload finished.'),
+);
+
 class RecordingScreen extends ConsumerStatefulWidget {
   const RecordingScreen({super.key});
 
@@ -161,6 +165,11 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                     await ref
                         .read(recordedVideoUploaderProvider.notifier)
                         .uploadAllNotUploadedVideos();
+                    if (!context.mounted) {
+                      return;
+                    }
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(uploadFinishedSnackBar);
                   },
                   icon: Column(
                     mainAxisSize: MainAxisSize.min,
