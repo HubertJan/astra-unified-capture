@@ -14,8 +14,6 @@ Future<void> uploadFileToService(File file, String recordingId) async {
 
     var response = await http.Client().send(request);
     print('Response status: ${response.statusCode}');
-  } catch (e) {
-    print('Error uploading file: $e');
   } finally {
     httpClient.close();
   }

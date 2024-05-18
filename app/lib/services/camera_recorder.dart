@@ -14,6 +14,7 @@ class CameraRecorder {
   bool _isRecording = false;
   bool _isUsingCameraController = false;
   void Function()? _onStopUsingCameraController;
+  void Function(File file, String recordingId)? onUploadFileToService;
 
   CameraRecorder._({required CameraController cameraController})
       : _cameraController = cameraController;
@@ -105,7 +106,7 @@ class CameraRecorder {
     print("Saving video to $filePath");
     await videoFile.saveTo(filePath);
     final file = File(filePath);
-    await uploadFileToService(file, recordingId);
+    onUploadFileToService?.call(file, recordingId);
     _isUsingCameraController = false;
     _onStopUsingCameraController?.call();
   }

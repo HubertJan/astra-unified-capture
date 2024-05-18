@@ -1,5 +1,6 @@
 import 'package:app/provider/current_camera_settings.dart';
 import 'package:app/provider/device_name.dart';
+import 'package:app/provider/recorded_video_uploader.dart';
 import 'package:app/services/camera_recorder.dart';
 import 'package:app/provider/command_controller.dart';
 import 'package:app/provider/network_ip.dart';
@@ -42,6 +43,14 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     }
     if (recorder case CameraRecorder recorder) {
       cameraRecorder = recorder;
+      cameraRecorder?.onUploadFileToService = (file, recordingId) async {
+        await ref
+            .read(recordedVideoUploaderProvider.notifier)
+            .addVideo(file, recordingId);
+        await ref
+            .read(recordedVideoUploaderProvider.notifier)
+            .uploadAllNotUploadedVideos();
+      };
       ref.read(commandControllerProvider.notifier).turnOnAutoConnect();
       setState(() {});
       return;
@@ -132,6 +141,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     final controllerState = ref.watch(commandControllerProvider);
     final networkIP = ref.watch(networkIPProvider);
     final deviceName = ref.watch(deviceNameProvider);
+    final recordedVideoUploader = ref.watch(recordedVideoUploaderProvider);
     if (deviceName case AsyncData(value: String name)) {
       cameraRecorder?.userName = name;
     }
@@ -140,6 +150,37 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
         centerTitle: true,
         title: const Text('Astra Bremen - Record'),
         actions: [
+          recordedVideoUploader.maybeMap(
+              orElse: () => const SizedBox(),
+              data: (count) {
+                if (count.value == 0) {
+                  return const SizedBox();
+                }
+                return IconButton(
+                  onPressed: () async {
+                    await ref
+                        .read(recordedVideoUploaderProvider.notifier)
+                        .uploadAllNotUploadedVideos();
+                  },
+                  icon: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.cloud_upload,
+                        size: 20,
+                      ),
+                      SizedBox(
+                        child: Text(
+                          "${count.value} Videos",
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      )
+                    ],
+                  ),
+                  tooltip: 'Upload not uploaded videos',
+                );
+              }),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Setup Camera',
