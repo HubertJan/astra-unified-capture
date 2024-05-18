@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:uuid/uuid.dart';
 
 class CommandReceiver {
   static const String _targetServerIP = '192.168.2.1';
@@ -13,10 +14,11 @@ class CommandReceiver {
   bool get isAutoConnecting => _isAutoConnecting;
 
   CommandReceiver({MqttServerClient? client})
-      : _client = client ?? MqttServerClient(_targetServerIP, 'camera-app') {
+      : _client =
+            client ?? MqttServerClient(_targetServerIP, const Uuid().v4()) {
     _client.onConnected = () {
       print("Connected to server");
-      _client.subscribe("recording", MqttQos.atMostOnce);
+      _client.subscribe("recording", MqttQos.exactlyOnce);
       _client.updates?.listen((event) {
         print("Received message: ${event.last.payload}");
         switch (event.last.payload) {
