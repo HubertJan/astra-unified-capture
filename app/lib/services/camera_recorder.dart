@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:app/services/file_uploader.dart';
 import 'package:camera/camera.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,6 +41,13 @@ class CameraRecorder {
     if (cameras.isEmpty) {
       return null;
     }
+    cameras.firstWhere(
+      (element) => element.lensDirection == CameraLensDirection.back,
+      orElse: () {
+        return cameras.first;
+      },
+    );
+
     final cameraController = await _setupCameraController(
       camera: cameras.first,
       resolutionPreset: resolutionPreset,
