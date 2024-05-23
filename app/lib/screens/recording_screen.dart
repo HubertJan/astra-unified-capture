@@ -4,12 +4,14 @@ import 'package:app/provider/recorded_video_uploader.dart';
 import 'package:app/services/camera_recorder.dart';
 import 'package:app/provider/command_controller.dart';
 import 'package:app/provider/network_ip.dart';
+import 'package:app/services/file_storage.dart';
 import 'package:app/widgets/show_camera_settings_dialog.dart';
 import 'package:app/widgets/show_text_input_dialog.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keep_screen_on/keep_screen_on.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 const uploadFinishedSnackBar = SnackBar(
   content: Text('Upload finished.'),
@@ -48,6 +50,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     if (recorder case CameraRecorder recorder) {
       cameraRecorder = recorder;
       cameraRecorder?.onUploadFileToService = (file, recordingId) async {
+        await storeFileInExternalDocuments(file, recordingId);
         await ref
             .read(recordedVideoUploaderProvider.notifier)
             .addVideo(file, recordingId);
